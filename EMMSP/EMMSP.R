@@ -350,37 +350,44 @@ EMMSPPoints <- function(x, timeZero, P, nSegmentsCor, findNSegment, step, compar
     
   }
   
+  nSegmentsCorFalse <- nSegmentsCor
+  if (!findNSegment){
+    nSegmentsCor = 1
+  }
+  
   for(indexes in (index + 1):(index + P)){
     
     cat("Прогноз точки:", indexes - index)
     
     # Поиск лучшей длины корреляции по дисперсии
-    nSegmentsCorFalse <- nSegmentsCor
-    if (!findNSegment){
-      nSegmentsCor = 1
+
+    if (findNSegment){
+      dispersions <- c(1:nSegmentsCor)
+      for (di in  1:length(dispersions)){
+        dispersions[di] <- 9999999
+      }
     }
-    
-    dispersions <- c(1:nSegmentsCor)
-    for (di in  1:length(dispersions)){
-      dispersions[di] <- 9999999
+    else{
+      dispersions <- c(1:nSegmentsCor)
     }
-    
     
     forecastN <- data.frame()
     
     for (nn in 1:nSegmentsCor){
       
-      if(nn == 1){
-        dispersions[nn] <- 9999999
-        forecastN[1,nn] <- 0
-        next
+      if (findNSegment){
+        if(nn == 1){
+          dispersions[nn] <- 9999999
+          forecastN[1,nn] <- 0
+          next
+        }
       }
-      
-      
-      M <- step*nn
-      
+
       if (!findNSegment){
         M <- step*nSegmentsCorFalse
+      }
+      else{
+        M <- step*nn
       }
       
       # Выборка новой истории
@@ -435,7 +442,7 @@ EMMSPPoints <- function(x, timeZero, P, nSegmentsCor, findNSegment, step, compar
     
     if (!findNSegment){
       cat(", findNSegment FALSE")
-      cat(", длина отрезка:", nSegmentsCorFalse*step)
+      cat(", длина отрезка:", M)
       cat(", с дисперсией:", min(dispersions))
     }
     else{
@@ -483,7 +490,7 @@ EMMSPPoints <- function(x, timeZero, P, nSegmentsCor, findNSegment, step, compar
 # cycle - если TRUE, то включена обработка с циклами
 # cyclePeriod - период цикличности
 
-retran <- EMMSPPoints(data_zero, timeZero_0, 48, 7, TRUE, 48, "quadr_last", 100, TRUE, cyclePeriod_0)
+retran <- EMMSPPoints(data_zero, timeZero_0, 48, 4, FALSE, 48, "quadr_last", 100, TRUE, cyclePeriod_0)
 
 # Сама модель:
 # Известны timeZero_0 -> index_0
